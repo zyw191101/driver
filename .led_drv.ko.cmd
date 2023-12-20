@@ -1,1 +1,1 @@
-cmd_/home/zyw/hqyj/driver/led_drv.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -z noexecstack   --build-id  -T ./scripts/module-common.lds -o /home/zyw/hqyj/driver/led_drv.ko /home/zyw/hqyj/driver/led_drv.o /home/zyw/hqyj/driver/led_drv.mod.o;  true
+cmd_/home/zyw/hqyj/driver/led_drv.ko := arm-none-linux-gnueabi-ld -EL -r  -T /home/zyw/toolchain/kernel-3.4.39/scripts/module-common.lds --build-id  -o /home/zyw/hqyj/driver/led_drv.ko /home/zyw/hqyj/driver/led_drv.o /home/zyw/hqyj/driver/led_drv.mod.o

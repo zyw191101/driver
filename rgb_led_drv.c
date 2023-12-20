@@ -16,8 +16,15 @@
 #define NAME "chrdev_led"
 
 int major = 0; // 保存主设备号
+//开辟空间读写数据
 char kbuf[32];
 char kbuf_r[32]="recive message";
+//定义宏保存物理地址基地址
+#define RED_BASE 0xc001a000
+
+//定义指针保存映射后的虚拟地址首地址
+unsigned int *red_addr=NULL;
+
 // 函数实现
 int myopen(struct inode *node, struct file *file_t)
 {
@@ -55,6 +62,14 @@ ssize_t mywrite(struct file *file_t, const char __user *ubuf, size_t size, loff_
 		}
 		printk("kbuf:%s",kbuf);
     printk("%s %s %d\n", __FILE__, __func__, __LINE__);
+	//对接收到的消息进行处理
+	if(buf[0]==1)
+	{
+		*red_addr |=(1<<28);
+	}else if(kbuf[0]==0)
+	{
+		*red_addr &=(~(1<<28));
+	}
     return 0;
 }
 int myclose(struct inode *node, struct file *file_t)
@@ -82,12 +97,26 @@ static int __init ledDrv_init(void)
         printk("chrdev_register err.\n");
         return -EINVAL;
     }
-        printk("%d\n", major);
+    printk("%d\n", major);//打印系统分配的设备号
+	//建立虚拟地址和物理地址之间的映射关系
+	red_addr=(unsigned int *)ioremap(RED_BASE,40);
+	//容错判断
+	if(red_addr==NULL)
+	{	
+        printk("ioremap err.\n");
+        return -EINVAL;
+	}
+	*(red_addr+9)&=(~(3<<24));//选择GPIOA28功能
+	*(red_addr+1)|=(1<<28);//选择输出使能
+	*red_addr &=(~(1<<28));//红灯关闭
     return 0;
 }
 static void __exit ledDrv_exit(void)
 {
     printk(KERN_ERR "%s %s %d\n", __FILE__, __func__, __LINE__);
+	//取消映射
+	iounmap(red_addr);
+	//注销字符设备驱动
     unregister_chrdev(major, NAME);
 }
 

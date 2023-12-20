@@ -1,6 +1,6 @@
 #编译器选择
-#KERNEL_PATH=/home/zyw/toolchain/kernel-3.4.39
-KERNEL_PATH=/lib/modules/$(shell uname -r)/build
+KERNEL_PATH=/home/zyw/toolchain/kernel-3.4.39
+#KERNEL_PATH=/lib/modules/$(shell uname -r)/build
 PWD=$(shell pwd)
 all:
 	make -C $(KERNEL_PATH) M=$(PWD) modules

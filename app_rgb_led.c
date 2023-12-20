@@ -14,19 +14,18 @@
 int main(int argc, char const *argv[])
 {
 	//打开字符设备文件
-    int fd = open("./ledZyw", O_RDWR);
+    int fd = open("/dev/ledZyw", O_RDWR);
 	//容错判断
 	if(fd<0){
 	perror("open file err\n");
 	return -1;
 	}    
-	//对文件进行读写操作
-	char buf[32]="app message\n";
+	char buf[32]={1,0};
+	while(1){
 	write(fd,buf,sizeof(buf));
-	//开辟空间接收内核空间传过来的数据
-	char buf_r[32];
-	read(fd,buf_r,sizeof(buf_r));
-	printf("buf_r:%s\n",buf_r);
+	sleep(1);
+	buf[0]=buf[0]?0:1;
+	}
 	//关闭文件
 	close(fd);
     return 0;
