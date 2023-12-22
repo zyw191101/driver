@@ -29,7 +29,7 @@ int i;
 #define BUZ_BASE 0xc001c000
 unsigned int *buz_addr = NULL;
 
-// 终端处理函数
+// 中断处理函数
 irqreturn_t irq_handler(int irq, void *arg)
 {
 	if (irq == gpio_to_irq(GPIO_NOB8))

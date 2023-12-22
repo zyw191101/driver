@@ -1,20 +1,28 @@
 /*
  * @Author: zyw zhangyuanwei1130@163.com
- * @Date: 2023-12-22 11:21:44
+ * @Date: 2023-12-20 15:31:45
  * @LastEditors: zyw zhangyuanwei1130@163.com
- * @LastEditTime: 2023-12-22 12:05:36
- * @FilePath: /driver/water_dispenser/drv.c
- * @Description: 
+ * @LastEditTime: 2023-12-22 14:48:12
+ * @FilePath: /driver/led_drv.c
+ * @Description:
  */
-
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/init.h>
-#include <asm/io.h>
 #include <linux/uaccess.h>
 #include <linux/device.h>
-// 定义设备号
+#include <linux/gpio.h>
+#include <asm/io.h>
+
+//设置GPIOno号
+#define GPIONO(m, n) (m * 32 + n) // 宏定义gpiono
+#define GPIO_NOB8 GPIONO(1, 8)
+#define GPIO_NOB16 GPIONO(1, 16)
+int gpiono[] = {GPIO_NOB8, GPIO_NOB16};
+char *name[] = {"interrput_b8", "interrupt_b16"};
+
+//定义设备号
 #define NAME "chrdev_led"
 int major = 0; // 保存主设备号
 
@@ -23,7 +31,7 @@ struct class *cls=NULL;
 struct device *dev=NULL;
 
 //开辟空间读写数据
-char kbuf[32];
+int kbuf[32]={0};
 char kbuf_r[32]="recive message";
 //定义宏保存物理地址基地址
 #define RED_BASE 0xc001a000
@@ -35,6 +43,23 @@ unsigned int *red_addr=NULL;
 unsigned int *green_addr=NULL;
 unsigned int *blue_addr=NULL;
 unsigned int *buz_addr=NULL;
+
+// 中断处理函数
+irqreturn_t irq_handler(int irq, void *arg)
+{
+	if (irq == gpio_to_irq(GPIO_NOB8))
+	{
+		printk(KERN_ALERT "放水\n");
+		*red_addr |=(1<<28);//红灯亮
+		*green_addr &=(~(1<<13));//绿灯灭
+	}
+	if (irq == gpio_to_irq(GPIO_NOB16))
+	{
+		printk(KERN_ALERT "---------------------\n");
+	}
+	return IRQ_HANDLED;
+}
+
 // 函数实现
 int myopen(struct inode *node, struct file *file_t)
 {
@@ -70,40 +95,14 @@ ssize_t mywrite(struct file *file_t, const char __user *ubuf, size_t size, loff_
 				printk("copy_from_user err\n");
 				return -EINVAL;
 		}
-		printk("kbuf:%s\n",kbuf);
+		printk("kbuf:%d\n",kbuf);
     printk("%s %s %d\n", __FILE__, __func__, __LINE__);
 	//对接收到的消息进行处理
 	//红灯
-	if(kbuf[0]==1)
+	if(kbuf[0]!=0)
 	{
 		*red_addr |=(1<<28);
-	}else if(kbuf[0]==0)
-	{
-		*red_addr &=(~(1<<28));
-	}
-	//绿灯
-		if(kbuf[1]==1)
-	{
-		*green_addr |=(1<<13);
-	}else if(kbuf[1]==0)
-	{
 		*green_addr &=(~(1<<13));
-	}
-	//蓝灯
-		if(kbuf[2]==1)
-	{
-		*blue_addr |=(1<<12);
-	}else if(kbuf[2]==0)
-	{
-		*blue_addr &=(~(1<<12));
-	}
-	//蜂鸣器
-		if(kbuf[3]==1)
-	{
-		*buz_addr |=(1<<14);
-	}else if(kbuf[3]==0)
-	{
-		*buz_addr &=(~(1<<14));
 	}
     return 0;
 }
@@ -120,7 +119,6 @@ struct file_operations fops = {
     .write = mywrite,
     .release = myclose,
 };
-
 static int __init water_dispenser_init(void)
 {
     printk("%s %s %d\n", __FILE__, __func__, __LINE__);
@@ -132,6 +130,58 @@ static int __init water_dispenser_init(void)
         printk("chrdev_register err.\n");
         return -EINVAL;
     }
+    printk("%d\n", major);//打印系统分配的设备号
+	//建立虚拟地址和物理地址之间的映射关系
+	red_addr=(unsigned int *)ioremap(RED_BASE,40);
+	//容错判断
+	if(red_addr==NULL)
+	{	
+        printk("red ioremap err.\n");
+        return -EINVAL;
+	}
+	//红灯初始化
+	*(red_addr+9)&=(~(3<<24));//选择GPIOA28功能
+	*(red_addr+1)|=(1<<28);//选择输出使能
+	*red_addr &=(~(1<<28));//红灯关闭
+
+	green_addr=(unsigned int *)ioremap(GREEN_BASE,40);
+	//容错判断
+	if(green_addr==NULL)
+	{	
+        printk("green ioremap err.\n");
+        return -EINVAL;
+	}
+	//绿灯初始化
+	*(green_addr+8)&=(~(3<<26));//选择GPIOE13功能
+	*(green_addr+1)|=(1<<13);//选择输出使能
+	*green_addr |=(1<<13);//绿灯常亮
+
+	blue_addr=(unsigned int *)ioremap(BLUE_BASE,40);
+	//容错判断
+	if(blue_addr==NULL)
+	{	
+        printk("blue ioremap err.\n");
+        return -EINVAL;
+	}
+	//蓝灯初始化
+	*(blue_addr+8) &=(~(3<<24));
+	*(blue_addr+8) |=(1<<25);//选择GPIOB12功能
+	//1<<25等价于2<<24
+	*(blue_addr+1) |=(1<<12);//选择输出使能
+	*blue_addr &=(~(1<<12));//蓝灯关闭
+	
+	//蜂鸣器
+		buz_addr=(unsigned int *)ioremap(BUZ_BASE,40);
+	//容错判断
+	if(buz_addr==NULL)
+	{	
+        printk("blue ioremap err.\n");
+        return -EINVAL;
+	}
+	*(buz_addr+8) &=(~(3<<28));//[29:28] 
+	*(buz_addr+8) |=(1<<28);
+	*(buz_addr+1) |=(1<<14);
+	
 	//创建设备节点
 	//1.提交目录信息
 	cls =class_create(THIS_MODULE,NAME);
@@ -142,11 +192,20 @@ static int __init water_dispenser_init(void)
         return -EINVAL;
 	}
 	//2.提交文件信息
-	dev=device_create(cls,NULL,MKDEV(major,0),NULL,"ledZyw");
+	dev=device_create(cls,NULL,MKDEV(major,0),NULL,"water_dispenser");
 	if(IS_ERR(dev))
 	{
         printk("device create err.\n");
         return -EINVAL;
+	}
+	// 注册中断
+	for (i = 0; i < sizeof(gpiono) / sizeof(int); i++)
+	{
+		if (request_irq(gpio_to_irq(gpiono[i]), irq_handler, IRQF_TRIGGER_FALLING, name[i], NULL) != 0)
+		{
+			printk("%s request_irq err\n", name[i]);
+			return -EINVAL;
+		}
 	}
     return 0;
 }
@@ -156,6 +215,11 @@ static void __exit water_dispenser_exit(void)
 	//自动删除设备节点
 	device_destroy(cls,MKDEV(major,0));
 	class_destroy(cls);
+	// 注销中断
+	for (i = 0; i < sizeof(gpiono) / sizeof(int); i++)
+	{
+		free_irq(gpio_to_irq(gpiono[i]), NULL);
+	}
 	//取消映射
 	iounmap(red_addr);
 	iounmap(green_addr);
@@ -169,18 +233,3 @@ static void __exit water_dispenser_exit(void)
 module_init(water_dispenser_init);
 module_exit(water_dispenser_exit);
 MODULE_LICENSE("GPL");
-
-// //驱动入口
-// static int __init water_init(void)
-// {
-// 	return 0;
-// }
-
-// //驱动出口
-// static void __exit water_exit(void)
-// {
-
-// }
-// module_init();
-// module_exit();
-// MDUULE_LICENSE("GPL");

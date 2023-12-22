@@ -2,7 +2,7 @@
  * @Author: zyw zhangyuanwei1130@163.com
  * @Date: 2023-12-20 15:31:45
  * @LastEditors: zyw zhangyuanwei1130@163.com
- * @LastEditTime: 2023-12-21 20:23:59
+ * @LastEditTime: 2023-12-22 14:23:39
  * @FilePath: /driver/led_drv.c
  * @Description:
  */
@@ -22,7 +22,7 @@ struct class *cls=NULL;
 struct device *dev=NULL;
 
 //开辟空间读写数据
-char kbuf[32];
+int kbuf[32];
 char kbuf_r[32]="recive message";
 //定义宏保存物理地址基地址
 #define RED_BASE 0xc001a000
@@ -69,7 +69,7 @@ ssize_t mywrite(struct file *file_t, const char __user *ubuf, size_t size, loff_
 				printk("copy_from_user err\n");
 				return -EINVAL;
 		}
-		printk("kbuf:%s\n",kbuf);
+		printk("kbuf:%d\n",kbuf);
     printk("%s %s %d\n", __FILE__, __func__, __LINE__);
 	//对接收到的消息进行处理
 	//红灯
@@ -79,7 +79,7 @@ ssize_t mywrite(struct file *file_t, const char __user *ubuf, size_t size, loff_
 	}else if(kbuf[0]==0)
 	{
 		*red_addr &=(~(1<<28));
-	}
+
 	//绿灯
 		if(kbuf[1]==1)
 	{

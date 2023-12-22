@@ -1,0 +1,1 @@
+cmd_/home/zyw/hqyj/driver/water_dispenser/drv_water_dispenser.ko := arm-none-linux-gnueabi-ld -EL -r  -T /home/zyw/toolchain/kernel-3.4.39/scripts/module-common.lds --build-id  -o /home/zyw/hqyj/driver/water_dispenser/drv_water_dispenser.ko /home/zyw/hqyj/driver/water_dispenser/drv_water_dispenser.o /home/zyw/hqyj/driver/water_dispenser/drv_water_dispenser.mod.o

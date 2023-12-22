@@ -2,7 +2,7 @@
  * @Author: zyw zhangyuanwei1130@163.com
  * @Date: 2023-12-22 11:21:59
  * @LastEditors: zyw zhangyuanwei1130@163.com
- * @LastEditTime: 2023-12-22 13:48:25
+ * @LastEditTime: 2023-12-22 14:25:25
  * @FilePath: /driver/water_dispenser/app.c
  * @Description:
  */
@@ -10,6 +10,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
+
+
+//定义消息作为全局变量(结构体感觉也可以)
+int message[4];
 
 // 数据处理函数
 int data_packet(void)
@@ -25,10 +30,17 @@ int data_packet(void)
     scanf("%d", &money);
     int tail = 0xff;
     // 字符拼接
-    
+    message[0] =head;
+    message[1] =id;
+    message[2] =money;
+    message[3] =tail;
+    // for (int i = 0; i <4; i++)
+    // {
+    //     printf("%#x", message[i]);
+    // }
     // 2.文件保存
     // 2.1打开文件
-    FILE *file = fopen("data.txt", "rw");
+    FILE *file = fopen("data.txt", "a+");
     // 2.2容错判断
     if (file == NULL)
     {
@@ -36,15 +48,14 @@ int data_packet(void)
         return 1;
     }
     // 2.3往文件里面写数据
-
+    fprintf(file,"用户id:%d 金额:%d\n",id,money);
     // 2.4关闭文件指针
     fclose(file);
-    return money;
+    return 0;
 }
 
 // 数据传输函数
-
-int data_transmission(int money)
+int data_transmission()
 {
     // 打开字符设备文件
     int fd = open("/dev/water_dispenser", O_RDWR);
@@ -54,7 +65,7 @@ int data_transmission(int money)
         perror("open file err\n");
         return -1;
     }
-    write(fd, money, sizeof(money));
+    write(fd, &message[2], sizeof(message[2]));
     // 关闭文件
     close(fd);
     return 0;
@@ -62,7 +73,7 @@ int data_transmission(int money)
 
 int main(int argc, char const *argv[])
 {
-    int money = data_packet();
-    data_transmission(money);
+    data_packet();
+    data_transmission();
     return 0;
 }
