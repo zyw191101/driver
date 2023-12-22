@@ -1,11 +1,12 @@
 /*
  * @Author: zyw zhangyuanwei1130@163.com
- * @Date: 2023-12-20 15:31:45
+ * @Date: 2023-12-22 11:21:44
  * @LastEditors: zyw zhangyuanwei1130@163.com
- * @LastEditTime: 2023-12-21 20:23:59
- * @FilePath: /driver/led_drv.c
- * @Description:
+ * @LastEditTime: 2023-12-22 12:05:36
+ * @FilePath: /driver/water_dispenser/drv.c
+ * @Description: 
  */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -120,7 +121,7 @@ struct file_operations fops = {
     .release = myclose,
 };
 
-static int __init ledDrv_init(void)
+static int __init water_dispenser_init(void)
 {
     printk("%s %s %d\n", __FILE__, __func__, __LINE__);
     // 注册字符设备
@@ -131,59 +132,6 @@ static int __init ledDrv_init(void)
         printk("chrdev_register err.\n");
         return -EINVAL;
     }
-    printk("%d\n", major);//打印系统分配的设备号
-	//建立虚拟地址和物理地址之间的映射关系
-	red_addr=(unsigned int *)ioremap(RED_BASE,40);
-	//容错判断
-	if(red_addr==NULL)
-	{	
-        printk("red ioremap err.\n");
-        return -EINVAL;
-	}
-	//红灯初始化
-	*(red_addr+9)&=(~(3<<24));//选择GPIOA28功能
-	*(red_addr+1)|=(1<<28);//选择输出使能
-	*red_addr &=(~(1<<28));//红灯关闭
-
-	green_addr=(unsigned int *)ioremap(GREEN_BASE,40);
-	//容错判断
-	if(green_addr==NULL)
-	{	
-        printk("green ioremap err.\n");
-        return -EINVAL;
-	}
-	//绿灯初始化
-	*(green_addr+8)&=(~(3<<26));//选择GPIOE13功能
-	*(green_addr+1)|=(1<<13);//选择输出使能
-	*green_addr &=(~(1<<13));//绿灯关闭
-
-	blue_addr=(unsigned int *)ioremap(BLUE_BASE,40);
-	//容错判断
-	if(blue_addr==NULL)
-	{	
-        printk("blue ioremap err.\n");
-        return -EINVAL;
-	}
-	//蓝灯初始化
-	*(blue_addr+8) &=(~(3<<24));
-	*(blue_addr+8) |=(1<<25);//选择GPIOB12功能
-	//1<<25等价于2<<24
-	*(blue_addr+1) |=(1<<12);//选择输出使能
-	*blue_addr &=(~(1<<12));//蓝灯关闭
-	
-	//蜂鸣器
-		buz_addr=(unsigned int *)ioremap(BUZ_BASE,40);
-	//容错判断
-	if(buz_addr==NULL)
-	{	
-        printk("blue ioremap err.\n");
-        return -EINVAL;
-	}
-	*(buz_addr+8) &=(~(3<<28));//[29:28] 
-	*(buz_addr+8) |=(1<<28);
-	*(buz_addr+1) |=(1<<14);
-	*buz_addr |=(1<<14);
-	
 	//创建设备节点
 	//1.提交目录信息
 	cls =class_create(THIS_MODULE,NAME);
@@ -202,7 +150,7 @@ static int __init ledDrv_init(void)
 	}
     return 0;
 }
-static void __exit ledDrv_exit(void)
+static void __exit water_dispenser_exit(void)
 {
     printk(KERN_ERR "%s %s %d\n", __FILE__, __func__, __LINE__);
 	//自动删除设备节点
@@ -218,6 +166,21 @@ static void __exit ledDrv_exit(void)
     unregister_chrdev(major, NAME);
 }
 
-module_init(ledDrv_init);
-module_exit(ledDrv_exit);
+module_init(water_dispenser_init);
+module_exit(water_dispenser_exit);
 MODULE_LICENSE("GPL");
+
+// //驱动入口
+// static int __init water_init(void)
+// {
+// 	return 0;
+// }
+
+// //驱动出口
+// static void __exit water_exit(void)
+// {
+
+// }
+// module_init();
+// module_exit();
+// MDUULE_LICENSE("GPL");

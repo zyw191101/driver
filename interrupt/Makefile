@@ -11,7 +11,7 @@ clean:
 	make -C $(KERNEL_PATH) M=$(PWD) clean
 #obj-m +=hello.o
 #obj-m +=prc_1218_evening.o
-obj-m +=rgb_led_drv.o#与要编译的文件名字相同
+obj-m +=interrupt.o#与要编译的文件名字相同
 #obj-m += demo.o
 #demo-y += hello.o add.o#-y作用:将hello.o add.o 放到demo.o中
 #obj-m += demo.o

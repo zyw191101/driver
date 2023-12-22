@@ -1,0 +1,64 @@
+/*
+ * @Author: zyw zhangyuanwei1130@163.com
+ * @Date: 2023-12-21 16:33:25
+ * @LastEditors: zyw zhangyuanwei1130@163.com
+ * @LastEditTime: 2023-12-21 16:33:29
+ * @FilePath: /driver/interrupt/interrupt.c
+ * @Description:
+ */
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/printk.h>
+#include<linux/interrupt.h>
+#include<linux/gpio.h>
+#define GPIONO(m,n) (m*32+n)
+#define GPIO_NB8 GPIONO(1,8)
+#define GPIO_NOB16 GPIONO(1,16)
+
+int gpiono[] = {GPIO_NB8,GPIO_NOB16};
+char  *name[] = {"interrupt_b8","interrupt_b16"};
+
+int i;
+
+//中断处理函数
+irqreturn_t irq_handler(int irq,void *arg)
+{
+    if (irq == gpio_to_irq(GPIO_NB8))
+    {
+        printk(KERN_ALERT "+++++++++++++++++++++++++++++++\n");
+    }
+    if (irq == gpio_to_irq(GPIO_NOB16))
+    {
+        printk(KERN_ALERT "--------------------------------\n");
+    }
+    return IRQ_HANDLED;
+}
+
+static int __init interrupt_init(void)
+{
+    //注册中断
+    for ( i = 0; i < sizeof(gpiono)/sizeof(int); i++)
+    {
+       if (request_irq(gpio_to_irq(gpiono[i]),irq_handler,IRQF_TRIGGER_FALLING,name[i],NULL)!=0)
+       {
+           printk("%s request_ire err.\n",name[i]);
+           return -EINVAL;
+       }
+      
+    }
+     return 0;
+}
+
+static void __exit interrupt_exit(void)
+{
+    //注销中断
+    for ( i = 0; i < sizeof(gpiono) / sizeof(int); i++)
+    {
+        free_irq(gpio_to_irq(gpiono[i]),NULL);
+    }
+    
+}
+
+module_init(interrupt_init);
+module_exit(interrupt_exit);
+MODULE_LICENSE("GPL");
