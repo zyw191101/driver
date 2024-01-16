@@ -412,16 +412,6 @@ deps_/home/zyw/hqyj/driver/water_dispenser/drv_water_dispenser.o := \
   /home/zyw/toolchain/kernel-3.4.39/arch/arm/include/asm/fcntl.h \
   include/asm-generic/fcntl.h \
   include/linux/err.h \
-  /home/zyw/toolchain/kernel-3.4.39/arch/arm/include/asm/io.h \
-    $(wildcard include/config/need/mach/io/h.h) \
-    $(wildcard include/config/pcmcia/soc/common.h) \
-    $(wildcard include/config/pci.h) \
-    $(wildcard include/config/isa.h) \
-    $(wildcard include/config/pccard.h) \
-  include/asm-generic/pci_iomap.h \
-    $(wildcard include/config/no/generic/pci/ioport/map.h) \
-    $(wildcard include/config/generic/pci/iomap.h) \
-  arch/arm/mach-s5p6818/include/mach/io.h \
   include/linux/uaccess.h \
   /home/zyw/toolchain/kernel-3.4.39/arch/arm/include/asm/uaccess.h \
   /home/zyw/toolchain/kernel-3.4.39/arch/arm/include/asm/unified.h \
@@ -442,6 +432,53 @@ deps_/home/zyw/hqyj/driver/water_dispenser/drv_water_dispenser.o := \
     $(wildcard include/config/iommu/api.h) \
     $(wildcard include/config/arch/omap.h) \
   include/linux/pm_wakeup.h \
+  include/linux/gpio.h \
+    $(wildcard include/config/generic/gpio.h) \
+  /home/zyw/toolchain/kernel-3.4.39/arch/arm/include/asm/gpio.h \
+    $(wildcard include/config/arch/nr/gpio.h) \
+  arch/arm/mach-s5p6818/include/mach/gpio.h \
+  arch/arm/mach-s5p6818/include/mach/s5p6818_irq.h \
+    $(wildcard include/config/regulator/nxe2000.h) \
+  include/asm-generic/gpio.h \
+    $(wildcard include/config/gpiolib.h) \
+    $(wildcard include/config/of/gpio.h) \
+    $(wildcard include/config/of.h) \
+    $(wildcard include/config/gpio/sysfs.h) \
+  include/linux/of.h \
+    $(wildcard include/config/sparc.h) \
+    $(wildcard include/config/of/dynamic.h) \
+  include/linux/mod_devicetable.h \
+  /home/zyw/toolchain/kernel-3.4.39/arch/arm/include/asm/io.h \
+    $(wildcard include/config/need/mach/io/h.h) \
+    $(wildcard include/config/pcmcia/soc/common.h) \
+    $(wildcard include/config/pci.h) \
+    $(wildcard include/config/isa.h) \
+    $(wildcard include/config/pccard.h) \
+  include/asm-generic/pci_iomap.h \
+    $(wildcard include/config/no/generic/pci/ioport/map.h) \
+    $(wildcard include/config/generic/pci/iomap.h) \
+  arch/arm/mach-s5p6818/include/mach/io.h \
+  include/linux/interrupt.h \
+    $(wildcard include/config/generic/hardirqs.h) \
+    $(wildcard include/config/irq/forced/threading.h) \
+    $(wildcard include/config/generic/irq/probe.h) \
+    $(wildcard include/config/proc/fs.h) \
+  include/linux/irqreturn.h \
+  include/linux/irqnr.h \
+  include/linux/hardirq.h \
+    $(wildcard include/config/virt/cpu/accounting.h) \
+    $(wildcard include/config/irq/time/accounting.h) \
+  include/linux/ftrace_irq.h \
+    $(wildcard include/config/ftrace/nmi/enter.h) \
+  /home/zyw/toolchain/kernel-3.4.39/arch/arm/include/asm/hardirq.h \
+  /home/zyw/toolchain/kernel-3.4.39/arch/arm/include/asm/irq.h \
+    $(wildcard include/config/sparse/irq.h) \
+  arch/arm/mach-s5p6818/include/mach/irqs.h \
+  include/linux/irq_cpustat.h \
+  include/linux/hrtimer.h \
+    $(wildcard include/config/high/res/timers.h) \
+    $(wildcard include/config/timerfd.h) \
+  include/linux/timerqueue.h \
 
 /home/zyw/hqyj/driver/water_dispenser/drv_water_dispenser.o: $(deps_/home/zyw/hqyj/driver/water_dispenser/drv_water_dispenser.o)
 
